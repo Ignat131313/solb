@@ -3,9 +3,10 @@ import json
 import requests
 import asyncio
 import websockets
-from solana.keypair import Keypair
+from solana.publickey import PublicKey
 from solana.rpc.api import Client
 from solana.transaction import Transaction
+from solana.keypair import Keypair  # Этот импорт остаётся, так как solana-py его поддерживает
 from base58 import b58decode, b58encode
 from flask import Flask, render_template, request, jsonify
 
@@ -24,7 +25,7 @@ if not PRIVATE_KEY:
     raise ValueError("Установите SOLANA_PRIVATE_KEY в переменных окружения")
 
 client = Client(SOLANA_RPC)
-keypair = Keypair.from_secret_key(b58decode(PRIVATE_KEY))
+keypair = Keypair.from_base58(PRIVATE_KEY)  # Обновлено для solana-py
 WALLET_ADDRESS = str(keypair.public_key)
 
 # Загрузка конфигурации
@@ -92,10 +93,10 @@ def perform_swap(input_token: str, output_token: str, amount: str, slippage: flo
     signed_tx = b58encode(transaction.serialize()).decode("utf-8")
     result = submit_signed_transaction(signed_tx)
     
-    # Обновление статистики (пример, предполагаем, что результат содержит profit)
+    # Обновление статистики
     amount_float = float(amount) / 10**9  # Перевод из лампортов в SOL
     stats["spent"] += amount_float
-    profit = result.get("profit", 0.0) if "profit" in result else 0.0  # Зависит от API
+    profit = result.get("profit", 0.0) if "profit" in result else 0.0
     stats["profit"] += profit
     stats["trades"].append({"profit": profit})
     
@@ -103,7 +104,6 @@ def perform_swap(input_token: str, output_token: str, amount: str, slippage: flo
 
 # Продать все (заглушка)
 def sell_all():
-    # Здесь должна быть логика продажи всех токенов, пока заглушка
     return "Все позиции проданы (заглушка)"
 
 # Список токенов для интерфейса
