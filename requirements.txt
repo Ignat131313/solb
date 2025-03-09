@@ -1,5 +1,5 @@
 flask
 requests
-solana
+solana-py
 websockets
 asyncio
