@@ -3,10 +3,10 @@ import json
 import requests
 import asyncio
 import websockets
-from solana.rpc.api import Client  # Оставляем solana.rpc.api для RPC-клиента
-from solders.keypair import Keypair  # Используем solders для Keypair
-from solders.pubkey import Pubkey as PublicKey  # Используем solders для PublicKey
-from solana.transaction import Transaction  # Transaction остаётся из solana
+from solana.rpc.api import Client
+from solders.keypair import Keypair
+from solders.pubkey import Pubkey as PublicKey
+from solana.transaction import Transaction
 from base58 import b58decode, b58encode
 from flask import Flask, render_template, request, jsonify
 
@@ -24,9 +24,12 @@ PRIVATE_KEY = os.getenv("SOLANA_PRIVATE_KEY")
 if not PRIVATE_KEY:
     raise ValueError("Установите SOLANA_PRIVATE_KEY в переменных окружения")
 
-client = Client(SOLANA_RPC)
-keypair = Keypair.from_bytes(b58decode(PRIVATE_KEY))  # Используем from_bytes для solders
-WALLET_ADDRESS = str(PublicKey(keypair.pubkey()))  # Преобразуем pubkey из solders
+try:
+    client = Client(SOLANA_RPC)
+    keypair = Keypair.from_bytes(b58decode(PRIVATE_KEY))
+    WALLET_ADDRESS = str(PublicKey(keypair.pubkey()))
+except Exception as e:
+    raise ValueError(f"Ошибка при создании ключа: {str(e)}")
 
 # Загрузка конфигурации
 def load_config():
@@ -89,7 +92,7 @@ def perform_swap(input_token: str, output_token: str, amount: str, slippage: flo
     swap_tx_base64 = route["data"]["raw_tx"]["swapTransaction"]
     swap_tx_buf = b58decode(swap_tx_base64)
     transaction = Transaction.deserialize(swap_tx_buf)
-    transaction.sign(keypair)  # Используем solders.Keypair для подписи
+    transaction.sign(keypair)
     signed_tx = b58encode(transaction.serialize()).decode("utf-8")
     result = submit_signed_transaction(signed_tx)
     
