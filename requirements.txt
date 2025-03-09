@@ -1,5 +1,7 @@
 flask
 requests
+solders
 solana
+base58
 websockets
 asyncio
