@@ -4,7 +4,7 @@ import requests
 import asyncio
 import websockets
 from solana.rpc.api import Client
-from solana import Keypair  # Исправленный импорт
+from solana.keypair import Keypair  # Правильный импорт для Keypair
 from solana.transaction import Transaction
 from solana.publickey import PublicKey
 from base58 import b58decode, b58encode
@@ -25,7 +25,7 @@ if not PRIVATE_KEY:
     raise ValueError("Установите SOLANA_PRIVATE_KEY в переменных окружения")
 
 client = Client(SOLANA_RPC)
-keypair = Keypair.from_secret_key(b58decode(PRIVATE_KEY))  # Метод совместим с solana
+keypair = Keypair.from_secret_key(b58decode(PRIVATE_KEY))  # Метод для создания Keypair
 WALLET_ADDRESS = str(keypair.public_key)
 
 # Загрузка конфигурации
