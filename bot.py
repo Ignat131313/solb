@@ -10,13 +10,6 @@ from solana.transaction import Transaction
 from base58 import b58decode, b58encode
 from flask import Flask, render_template, request, jsonify
 
-# Добавим проверку установки solana
-try:
-    import solana
-    print(f"Solana version: {solana.__version__}")
-except ImportError as e:
-    print(f"Ошибка импорта solana: {str(e)}")
-
 # Константы
 GMGN_API_HOST = "https://gmgn.ai"
 PUMP_API_HOST = "https://pumpportal.fun/api"
