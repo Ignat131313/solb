@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Солана Трейдинг Бот</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        #swap-form, #stats { margin-top: 20px; }
+        button { margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Солана Трейдинг Бот</h1>
+    
+    <h2>Статистика</h2>
+    <div id="stats">
+        <p>Потрачено: {{ stats.spent }} SOL</p>
+        <p>Прибыль: {{ stats.profit }} SOL</p>
+        <p>Вин рейт: {{ "%.2f"|format(win_rate) }}%</p>
+    </div>
+
+    <h2>Трендовые токены</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Адрес токена</th>
+                <th>Маркет кап (USD)</th>
+                <th>Держатели</th>
+                <th>Ликвидность</th>
+                <th>Объём торгов</th>
+            </tr>
+        </thead>
+        <tbody id="token-table">
+            {% for token in tokens %}
+            <tr>
+                <td>{{ token.address }}</td>
+                <td>{{ token.market_cap }}</td>
+                <td>{{ token.holders }}</td>
+                <td>{{ token.liquidity }}</td>
+                <td>{{ token.volume }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Выполнить своп</h2>
+    <form id="swap-form">
+        <label>Входной токен: <input type="text" id="input_token" placeholder="например, So11111111111111111111111111111111111111112"></label><br>
+        <label>Выходной токен: <input type="text" id="output_token" placeholder="например, 7EYnhQoR9YM3N7UoaKRoA44Uy8JeaZV3qyouov87awMs"></label><br>
+        <label>Сумма (лампорты): 
+            <select id="amount">
+                <option value="10000000">0.01 SOL (10M лампортов)</option>
+                <option value="50000000">0.05 SOL (50M лампортов)</option>
+                <option value="100000000">0.1 SOL (100M лампортов)</option>
+            </select>
+        </label><br>
+        <button type="submit">Своп</button>
+    </form>
+
+    <h2>Продать все</h2>
+    <button id="sell-all">Продать все позиции</button>
+
+    <script>
+        // Обновление таблицы и статистики
+        function updateData() {
+            fetch('/')
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    document.getElementById('token-table').innerHTML = doc.querySelector('#token-table').innerHTML;
+                    document.getElementById('stats').innerHTML = doc.querySelector('#stats').innerHTML;
+                });
+            setTimeout(updateData, 5000); // Обновление каждые 5 секунд
+        }
+        updateData();
+
+        // Обработка формы свопа
+        document.getElementById('swap-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputToken = document.getElementById('input_token').value;
+            const outputToken = document.getElementById('output_token').value;
+            const amount = document.getElementById('amount').value;
+            fetch('/swap', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({input_token: inputToken, output_token: outputToken, amount: amount})
+            })
+                .then(response => response.json())
+                .then(data => alert(data.result));
+        });
+
+        // Обработка кнопки "Продать все"
+        document.getElementById('sell-all').addEventListener('click', function() {
+            fetch('/sell_all', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({})
+            })
+                .then(response => response.json())
+                .then(data => alert(data.result));
+        });
+    </script>
+</body>
+</html>
