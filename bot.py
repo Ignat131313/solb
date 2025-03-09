@@ -45,6 +45,13 @@ def load_config():
 
 CONFIG = load_config()
 
+# Статистика
+stats = {
+    "spent": 0.0,  # Потрачено в SOL
+    "profit": 0.0,  # Прибыль в SOL
+    "trades": [],  # Список свопов для подсчёта вин рейта
+}
+
 # Функции GMGN API
 def get_token_info(token_address: str) -> dict:
     url = f"{GMGN_API_HOST}/defi/router/v1/sol/token_info?token_address={token_address}"
@@ -84,7 +91,20 @@ def perform_swap(input_token: str, output_token: str, amount: str, slippage: flo
     transaction.sign(keypair)
     signed_tx = b58encode(transaction.serialize()).decode("utf-8")
     result = submit_signed_transaction(signed_tx)
+    
+    # Обновление статистики (пример, предполагаем, что результат содержит profit)
+    amount_float = float(amount) / 10**9  # Перевод из лампортов в SOL
+    stats["spent"] += amount_float
+    profit = result.get("profit", 0.0) if "profit" in result else 0.0  # Зависит от API
+    stats["profit"] += profit
+    stats["trades"].append({"profit": profit})
+    
     return f"Результат свопа: {json.dumps(result, indent=2)}"
+
+# Продать все (заглушка)
+def sell_all():
+    # Здесь должна быть логика продажи всех токенов, пока заглушка
+    return "Все позиции проданы (заглушка)"
 
 # Список токенов для интерфейса
 tokens_list = []
@@ -114,12 +134,18 @@ async def scan_trending_tokens():
 # Маршруты Flask
 @app.route('/')
 def index():
-    return render_template('index.html', tokens=tokens_list)
+    win_rate = sum(1 for trade in stats["trades"] if trade["profit"] > 0) / len(stats["trades"]) * 100 if stats["trades"] else 0
+    return render_template('index.html', tokens=tokens_list, stats=stats, win_rate=win_rate)
 
 @app.route('/swap', methods=['POST'])
 def swap():
     data = request.json
     result = perform_swap(data["input_token"], data["output_token"], data["amount"])
+    return jsonify({"result": result})
+
+@app.route('/sell_all', methods=['POST'])
+def sell_all_route():
+    result = sell_all()
     return jsonify({"result": result})
 
 # Запуск WebSocket в фоновом режиме
