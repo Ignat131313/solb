@@ -1,0 +1,10 @@
+{
+  "blacklisted_tokens": ["7EYnhQoR9YM3N7UoaKRoA44Uy8JeaZV3qyouov87awMs"],
+  "blacklisted_devs": ["DevAddress1xyz"],
+  "filters": {
+    "min_market_cap": 10000,
+    "max_market_cap": 1000000,
+    "min_holders": 50,
+    "max_holders": 10000
+  }
+}
