@@ -3,10 +3,10 @@ import json
 import requests
 import asyncio
 import websockets
-from solana.publickey import PublicKey
 from solana.rpc.api import Client
+from solana.keypair import Keypair
 from solana.transaction import Transaction
-from solana.keypair import Keypair  # Этот импорт остаётся, так как solana-py его поддерживает
+from solana.publickey import PublicKey  # Этот импорт правильный для пакета solana
 from base58 import b58decode, b58encode
 from flask import Flask, render_template, request, jsonify
 
@@ -25,7 +25,7 @@ if not PRIVATE_KEY:
     raise ValueError("Установите SOLANA_PRIVATE_KEY в переменных окружения")
 
 client = Client(SOLANA_RPC)
-keypair = Keypair.from_base58(PRIVATE_KEY)  # Обновлено для solana-py
+keypair = Keypair.from_secret_key(b58decode(PRIVATE_KEY))  # Исправлено для совместимости
 WALLET_ADDRESS = str(keypair.public_key)
 
 # Загрузка конфигурации
